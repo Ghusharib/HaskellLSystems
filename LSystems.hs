@@ -31,30 +31,47 @@ type ColouredLine
 
 -- |Returns the rotation angle for the given system.
 angle :: System -> Float
-angle = error "TODO: implement angle"
+angle (returnValue, _, _) 
+  = returnValue
 
 -- |Returns the base string for the given system.
 base :: System -> String
-base = error "TODO: implement base"
+base (_, returnValue, _)
+  = returnValue
 
 -- |Returns the set of rules for the given system.
 rules :: System -> Rules
-rules = error "TODO: implement rules"
-
+rules (_, _, returnValue)
+  = returnValue
 
 -- |Look up a character in the given set of rules.
 --
 --  Pre: the character exists in the set of rules.
 lookupChar :: Char -> Rules -> String
-lookupChar = error "TODO: implement lookupChar"
+lookupChar _ []
+  = error "This character does not exist in the rules"
+lookupChar toFind (ruleTuple : ruleTuples)
+  | toFind == x = y
+  | otherwise   = lookupChar toFind ruleTuples
+  where
+    (x, y)      = ruleTuple
 
 -- |Expand a command once using the given set of rules.
 expandOne :: Rules -> String -> String
-expandOne = error "TODO: implement expandOne"
+expandOne _ []
+  = []
+expandOne givenRules (x : xs)
+  = lookupChar x givenRules ++ expandOne givenRules xs
 
 -- |Expand a command `n' times using the given set of rules.
 expand :: Rules -> String -> Int -> String
-expand = error "TODO: implement expand"
+expand _ finalValue 0
+  = finalValue
+expand givenRules givenString n
+  = expand givenRules expansionResult (n-1)
+  where
+    expansionResult = expandOne givenRules givenString
+--expand = error "TODO: implement expand"
 
 -- |Move a turtle.
 --
