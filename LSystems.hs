@@ -91,7 +91,7 @@ move comparisonChar currentState rotationAngle
 --  Method 1
 trace1 :: String -> Float -> Colour -> [ColouredLine]
 trace1 rules angle colour
-  = trace1' rules ((0, 0), angle) colour
+  = trace1' rules ((0, 0), 90) colour
   where
   trace1' :: String -> TurtleState -> Colour -> [ColouredLine]
   trace1' [] currentState colour
