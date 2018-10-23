@@ -50,11 +50,8 @@ rules (_, _, returnValue)
 lookupChar :: Char -> Rules -> String
 lookupChar _ []
   = error "This character does not exist in the rules"
-lookupChar toFind (ruleTuple : ruleTuples)
-  | toFind == x = y
-  | otherwise   = lookupChar toFind ruleTuples
-  where
-    (x, y)      = ruleTuple
+lookupChar toFind rules
+  = head [y | (x, y) <- rules, x == toFind]
 
 -- |Expand a command once using the given set of rules.
 expandOne :: Rules -> String -> String
@@ -71,7 +68,6 @@ expand givenRules givenString n
   = expand givenRules expansionResult (n-1)
   where
     expansionResult = expandOne givenRules givenString
---expand = error "TODO: implement expand"
 
 -- |Move a turtle.
 --
@@ -79,13 +75,51 @@ expand givenRules givenString n
 --  * 'L' rotates left according to the given angle.
 --  * 'R' rotates right according to the given angle.
 move :: Char -> TurtleState -> Float -> TurtleState
-move = error "TODO: implement move"
+move comparisonChar currentState rotationAngle
+  |comparisonChar == 'F' = ((newx, newy), currentAngle)
+  |comparisonChar == 'R' = ((x, y), (currentAngle - rotationAngle))
+  |comparisonChar == 'L' = ((x, y), (currentAngle + rotationAngle))
+  where
+    newx = x + (cos (currentAngle * conversion))
+    newy = y + (sin (currentAngle * conversion))
+    ((x, y), currentAngle) = currentState
+    conversion = pi/180
+    --conversion is multiplying to convert to radians as cos works in radians
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 1
 trace1 :: String -> Float -> Colour -> [ColouredLine]
-trace1 = error "TODO: implement trace1"
+trace1 rules angle colour
+  = trace1' rules ((0, 0), angle) colour
+  where
+  trace1' :: String -> TurtleState -> Colour -> [ColouredLine]
+  trace1' [] currentState colour
+    = []
+  trace1' ('[' : rules) currentState colour
+    = (trace1' bracedRules currentState colour) ++ (trace1' remainingRules currentState colour)
+    where
+      (bracedRules, remainingRules) = getBraces rules 0
+  trace1' (rule : rules) currentState@((x, y), _) colour
+    |rule == 'F' = ((x, y), (newx, newy), colour) : trace1' rules newState colour
+    |otherwise   = trace1' rules newState colour
+    where
+      newState@((newx, newy), newAngle) = move rule currentState angle
+--trace1 = error "TODO: implement trace1"
+
+getBraces :: String -> Integer -> (String, String)
+getBraces ('[' : rules) n
+  = ('[' : x, y)
+  where (x, y) = getBraces rules (n + 1)
+getBraces (']' : rules) n
+  | n == 0    = ([], rules)
+  | otherwise = (']' : x, y)
+  where
+    (x, y) = getBraces rules (n - 1)
+getBraces (rule : rules) n
+  = (rule : x, y)
+  where
+    (x, y) = getBraces rules n
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
