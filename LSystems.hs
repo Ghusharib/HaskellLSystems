@@ -125,7 +125,23 @@ getBraces (rule : rules) n
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 2
 trace2 :: String -> Float -> Colour -> [ColouredLine]
-trace2 = error "TODO: implement trace2"
+trace2 rules angle colour
+  = trace2' rules ((0, 0), 90) colour []
+  where
+    trace2' :: String -> TurtleState -> Colour -> Stack -> [ColouredLine]
+    trace2' [] _ _ _
+      = []
+    trace2' ('[' : rules) currentState colour stack
+      = trace2' rules currentState colour (currentState : stack)
+    trace2' (']' : rules) currentState colour (stack : stacks)
+      = trace2' rules stack colour stacks
+    trace2' (rule : rules) currentState@((x,y),_) colour stack
+      |rule == 'F' = ((x, y), (newx, newy), colour) : trace2' rules newState colour stack
+      |otherwise   = trace2' rules newState colour stack
+      where
+        newState@((newx, newy), newAngle) = move rule currentState angle
+    
+--trace2 = error "TODO: implement trace2"
 
 
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
