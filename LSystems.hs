@@ -79,6 +79,7 @@ move comparisonChar currentState rotationAngle
   |comparisonChar == 'F' = ((newx, newy), currentAngle)
   |comparisonChar == 'R' = ((x, y), (currentAngle - rotationAngle))
   |comparisonChar == 'L' = ((x, y), (currentAngle + rotationAngle))
+  |comparisonChar == '[' = error "Error reached"
   where
     newx = x + (cos (currentAngle * conversion))
     newy = y + (sin (currentAngle * conversion))
@@ -89,61 +90,45 @@ move comparisonChar currentState rotationAngle
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 1
+
 trace1 :: String -> Float -> Colour -> [ColouredLine]
 trace1 rules angle colour
-  = trace1' rules ((0, 0), 90) colour
+  = snd (trace1' rules ((0, 0), 90))
   where
-  trace1' :: String -> TurtleState -> Colour -> [ColouredLine]
-  trace1' [] currentState colour
-    = []
-  trace1' ('[' : rules) currentState colour
-    = (trace1' bracedRules currentState colour) ++ (trace1' remainingRules currentState colour)
-    where
-      (bracedRules, remainingRules) = getBraces rules 0
-  trace1' (rule : rules) currentState@((x, y), _) colour
-    |rule == 'F' = ((x, y), (newx, newy), colour) : trace1' rules newState colour
-    |otherwise   = trace1' rules newState colour
-    where
-      newState@((newx, newy), newAngle) = move rule currentState angle
---trace1 = error "TODO: implement trace1"
-
-getBraces :: String -> Integer -> (String, String)
-getBraces ('[' : rules) n
-  = ('[' : x, y)
-  where (x, y) = getBraces rules (n + 1)
-getBraces (']' : rules) n
-  | n == 0    = ([], rules)
-  | otherwise = (']' : x, y)
-  where
-    (x, y) = getBraces rules (n - 1)
-getBraces (rule : rules) n
-  = (rule : x, y)
-  where
-    (x, y) = getBraces rules n
+    trace1' :: String -> TurtleState -> (String, [ColouredLine])
+    trace1' [] _
+      = ("", [])
+    trace1' (rule : rules) currentState@((x, y), _)
+      | rule == '[' = (a, b ++ afterBraceAnswer)
+      | rule == ']' = (rules, [])
+      | rule == 'F' = (leftOver, ((x, y), (newx, newy), colour) : answer)
+      | otherwise   = (leftOver, answer)
+      where
+        (leftOver, answer) = trace1' rules newState
+        (a, b) = trace1' rules currentState
+        (afterBraceLeft, afterBraceAnswer) = trace1' a currentState
+        newState@((newx, newy), _) = move rule currentState angle
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
 --  Method 2
 trace2 :: String -> Float -> Colour -> [ColouredLine]
 trace2 rules angle colour
-  = trace2' rules ((0, 0), 90) colour []
+  = trace2' rules ((0, 0), 90) []
   where
-    trace2' :: String -> TurtleState -> Colour -> Stack -> [ColouredLine]
-    trace2' [] _ _ _
+    trace2' :: String -> TurtleState -> Stack -> [ColouredLine]
+    trace2' [] _ _
       = []
-    trace2' ('[' : rules) currentState colour stack
-      = trace2' rules currentState colour (currentState : stack)
-    trace2' (']' : rules) currentState colour (stack : stacks)
-      = trace2' rules stack colour stacks
-    trace2' (rule : rules) currentState@((x,y),_) colour stack
-      |rule == 'F' = ((x, y), (newx, newy), colour) : trace2' rules newState colour stack
-      |otherwise   = trace2' rules newState colour stack
+    trace2' ('[' : rules) currentState stack
+      = trace2' rules currentState (currentState : stack)
+    trace2' (']' : rules) currentState (stack : stacks)
+      = trace2' rules stack stacks
+    trace2' (rule : rules) currentState@((x,y),_) stack
+      |rule == 'F' = ((x, y), (newx, newy), colour) : trace2' rules newState stack
+      |otherwise   = trace2' rules newState stack
       where
-        newState@((newx, newy), newAngle) = move rule currentState angle
-    
---trace2 = error "TODO: implement trace2"
-
-
+        newState@((newx, newy), _) = move rule currentState angle
+   
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
 --  Some test systems.
