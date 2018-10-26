@@ -31,7 +31,7 @@ type ColouredLine
 
 -- |Returns the rotation angle for the given system.
 angle :: System -> Float
-angle (returnValue, _, _) 
+angle (returnValue, _, _)
   = returnValue
 
 -- |Returns the base string for the given system.
@@ -127,7 +127,7 @@ trace2 rules angle colour
       |otherwise   = trace2' rules newState stack
       where
         newState@((newx, newy), _) = move rule currentState angle
-   
+
 --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
 --  Some test systems.
