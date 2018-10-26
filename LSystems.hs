@@ -79,12 +79,11 @@ move comparisonChar currentState rotationAngle
   |comparisonChar == 'F' = ((newx, newy), currentAngle)
   |comparisonChar == 'R' = ((x, y), (currentAngle - rotationAngle))
   |comparisonChar == 'L' = ((x, y), (currentAngle + rotationAngle))
-  |comparisonChar == '[' = error "Error reached"
   where
-    newx = x + (cos (currentAngle * conversion))
-    newy = y + (sin (currentAngle * conversion))
+    newx                   = x + (cos (currentAngle * conversion))
+    newy                   = y + (sin (currentAngle * conversion))
     ((x, y), currentAngle) = currentState
-    conversion = pi/180
+    conversion             = pi/180
     --conversion is multiplying to convert to radians as cos works in radians
 
 -- |Trace lines drawn by a turtle using the given colour, following the
@@ -99,15 +98,15 @@ trace1 rules angle colour
     trace1' [] _
       = ("", [])
     trace1' (rule : rules) currentState@((x, y), _)
-      | rule == '[' = (a, b ++ afterBraceAnswer)
+      | rule == '[' = (inBraceLeft, inBraceAnswer ++ afterBraceAnswer)
       | rule == ']' = (rules, [])
       | rule == 'F' = (leftOver, ((x, y), (newx, newy), colour) : answer)
       | otherwise   = (leftOver, answer)
       where
-        (leftOver, answer) = trace1' rules newState
-        (a, b) = trace1' rules currentState
-        (afterBraceLeft, afterBraceAnswer) = trace1' a currentState
-        newState@((newx, newy), _) = move rule currentState angle
+        (leftOver, answer)           = trace1' rules newState
+        (inBraceLeft, inBraceAnswer) = trace1' rules currentState
+        (_, afterBraceAnswer)        = trace1' inBraceLeft currentState
+        newState@((newx, newy), _)   = move rule currentState angle
 
 -- |Trace lines drawn by a turtle using the given colour, following the
 --  commands in the string and assuming the given initial angle of rotation.
